@@ -209,9 +209,7 @@ void *ht_pop(const ht_t *ht, const char *key)
     }
     /* Found, mark key as deleted */
     elp->key = deleted_key;
-    /* The element pointed to by elp may be modified during rehashing */
-    void *value = elp->value;
-    return value;
+    return elp->value;
 }
 
 void ht_dump(const ht_t *ht)
