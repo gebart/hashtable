@@ -105,9 +105,23 @@ static const char *test_insert_full(void)
 {
     const ht_t ht = { .table = (ht_elem_t[HT_TEST_SIZE]){{0}}, .nelem = HT_TEST_SIZE };
     setup_ht_full(&ht);
-    ht_dump(&ht);
     const ht_elem_t *elp = ht_insert(&ht, "hej", "blah");
     tdd_assert(elp == NULL);
+
+    return NULL;
+}
+
+static const char *test_insert_after_pop(void)
+{
+    const ht_t ht = { .table = (ht_elem_t[HT_TEST_SIZE]){{0}}, .nelem = HT_TEST_SIZE };
+    setup_ht_full(&ht);
+    void *value = ht_pop(&ht, "k014");
+    tdd_assert(value);
+    const ht_elem_t *elp = ht_insert(&ht, "hej", "jadu");
+    tdd_assert(elp != NULL);
+    value = ht_lookup(&ht, "hej");
+    tdd_assert(value);
+    tdd_assert(0 == strcmp(value, "jadu"));
 
     return NULL;
 }
@@ -239,6 +253,7 @@ static const char *all_tests(void) {
     tdd_run(test_pop_twice);
     tdd_run(test_pop_empty);
     tdd_run(test_pop_past_deleted);
+    tdd_run(test_insert_after_pop);
     return NULL;
 }
 
