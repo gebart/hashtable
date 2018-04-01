@@ -21,7 +21,13 @@ extern int tests_run;
             return (__FILE__ ":" TOSTRING(__LINE__) ": " STRINGIFY(test)); \
         } \
     } while (0)
-#define tdd_run(test_func) do { const char *message = test_func(); tests_run++; \
-                                if (message) return message; } while (0)
+#define tdd_run(test_func) \
+    do { \
+        const char *message = test_func(); \
+        tests_run++; \
+        if (message) { \
+            return message; \
+        } \
+    } while (0)
 
 #endif /* TDD_H */

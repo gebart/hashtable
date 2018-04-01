@@ -22,7 +22,7 @@ LINKFLAGS += $(LDPREFIX)--gc-sections
 
 CFLAGS += -g3 -ggdb -O2 -fno-common -ffunction-sections -fdata-sections -MD -MP
 CFLAGS += -std=c99
-CFLAGS += -Wall -Wextra -Wpedantic -Wno-error -Wno-error=pedantic -fdiagnostics-color
+CFLAGS += -Wall -Wextra -Wpedantic -Werror -Wno-error=pedantic -fdiagnostics-color
 CPPFLAGS += $(addprefix -I,$(INCLUDEDIRS))
 
 include $(wildcard $(OBJDIR)/*.d)
