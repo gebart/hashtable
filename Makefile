@@ -6,7 +6,9 @@ INCLUDEDIRS = include
 MAINEXE = $(notdir $(CURDIR))
 ELFS = $(BINDIR)/$(MAINEXE)
 
-OBJS_$(MAINEXE) = $(MAINEXE).o
+OBJS_$(MAINEXE) = $(MAINEXE).o ht.o
+
+OBJS_$(MAINEXE) := $(addprefix $(OBJDIR)/,$(OBJS_$(MAINEXE)))
 
 QUIET?=1
 LINK ?= $(CC)
@@ -18,8 +20,9 @@ LDPREFIX = -Wl,
 
 LINKFLAGS += $(LDPREFIX)--gc-sections
 
-CFLAGS += -g3 -ggdb -O2 -fno-common -ffunction-sections -fdata-sections
-CFLAGS += -Wall -Wextra -Wpedantic -Werror -Wno-error=pedantic -MD -MP
+CFLAGS += -g3 -ggdb -O2 -fno-common -ffunction-sections -fdata-sections -MD -MP
+CFLAGS += -std=c99
+CFLAGS += -Wall -Wextra -Wpedantic -Wno-error -Wno-error=pedantic -fdiagnostics-color
 CPPFLAGS += $(addprefix -I,$(INCLUDEDIRS))
 
 include $(wildcard $(OBJDIR)/*.d)
@@ -30,7 +33,7 @@ PRINTF = printf
 PRINT = $(PRINTF) %s
 
 ifeq (1,$(QUIET))
-  ECHOCMD = @$(PRINTF) '  [%s]    \t%s\n'
+  ECHOCMD = @$(PRINTF) '  \e[1;37m[%s]\e[0m    \t%s\n'
   Q = @
 else
   ECHOCMD = @true
@@ -41,13 +44,13 @@ $(OBJDIR) $(BINDIR):
 	$(ECHOCMD) MKDIR '$@'
 	$(Q)mkdir -p '$@'
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c | $(OBJDIR)
+$(OBJDIR)/%.o : $(SRCDIR)/%.c $(MAKEFILE_LIST) | $(OBJDIR)
 	$(ECHOCMD) CC '$<'
 	$(Q)$(CC) $(CPPFLAGS) $(CFLAGS) -c -o '$@' $<
 
-$(BINDIR)/% : $(OBJDIR)/%.o | $(BINDIR)
+$(BINDIR)/$(MAINEXE) : $(OBJS_$(MAINEXE)) | $(BINDIR)
 	$(ECHOCMD) LINK '$@'
-	$(Q)$(LINK) $(LINKFLAGS) -o '$@' $<
+	$(Q)$(LINK) $(LINKFLAGS) -o '$@' $^
 
 .PHONY: clean
 clean:
