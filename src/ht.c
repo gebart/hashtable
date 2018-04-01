@@ -1,5 +1,5 @@
 /*
- * hashtable.c
+ * ht.c
  *
  * Copyright 2018 Joakim Nohlgård <jgn@mazarin>
  *
@@ -17,16 +17,15 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301, USA.
- *
- *
  */
+
+#include "ht.h"
 
 #include <stddef.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
-#include "ht.h"
 
 #define ENABLE_DEBUG 0
 
@@ -37,14 +36,14 @@
 static const char *deleted_key = (const char[]){'\0'};
 
 /**
- * @brief   Hash function
+ * @brief   Low level hash function
  *
  * @param[in]       data    Data array to hash
  * @param[in]       nbytes  length of @p data, in bytes
  *
  * @return Hash of @p data
  */
-static uint32_t _hash(const void *data, size_t nbytes);
+static uint32_t ht_hash_lower(const void *data, size_t nbytes);
 
 /**
  * @brief   Generate hash of key
@@ -56,7 +55,7 @@ static uint32_t _hash(const void *data, size_t nbytes);
  *
  * @return  Hash table offset of @p key
  */
-static size_t _ht_hash(const ht_t *ht, const char *key);
+static size_t ht_hash_key(const ht_t *ht, const char *key);
 
 /**
  * @brief   Find the location of an element in a hash table
@@ -70,7 +69,7 @@ static size_t _ht_hash(const ht_t *ht, const char *key);
  * @return  Pointer to the element in @c ht->table where @p key should be located
  * @return  NULL if the table is full
  */
-static ht_elem_t *_ht_locate(const ht_t *ht, const char *key);
+static ht_elem_t *ht_locate(const ht_t *ht, const char *key);
 
 void ht_init(ht_t *ht, ht_elem_t *buf, size_t nelem)
 {
@@ -94,12 +93,12 @@ void ht_clear(const ht_t *ht)
     memset(ht->table, 0, sizeof(ht->table[0]) * ht->nelem);
 }
 
-static uint32_t _hash(const void *data, size_t nbytes)
+static uint32_t ht_hash_lower(const void *data, size_t nbytes)
 {
     uint32_t h = 0;
     const uint8_t *input = data;
 
-    /* sdbm hash algorithm, see  */
+    /* sdbm hash algorithm, see http://www.cse.yorku.ca/~oz/hash.html#sdbm */
     while (nbytes--) {
         uint8_t c = *(input++);
         h = c + (h << 6) + (h << 16) - h;
@@ -107,14 +106,14 @@ static uint32_t _hash(const void *data, size_t nbytes)
     return h;
 }
 
-static size_t _ht_hash(const ht_t *ht, const char *key)
+static size_t ht_hash_key(const ht_t *ht, const char *key)
 {
     if (!ht) {
         DEBUG(__func__);
         DEBUG(": ht == NULL\n");
         return 0;
     }
-    uint32_t h = _hash(key, strlen(key));
+    uint32_t h = ht_hash_lower(key, strlen(key));
     if (ht->nelem < (1 << 16)) {
         /* Mix in the upper bytes as well */
         h = (h ^ (h >> 16));
@@ -124,9 +123,9 @@ static size_t _ht_hash(const ht_t *ht, const char *key)
     return h;
 }
 
-static ht_elem_t *_ht_locate(const ht_t *ht, const char *key)
+static ht_elem_t *ht_locate(const ht_t *ht, const char *key)
 {
-    size_t h = _ht_hash(ht, key);
+    size_t h = ht_hash_key(ht, key);
     ht_elem_t *elp_free = NULL;
     for (size_t offset = 0; offset < ht->nelem; ++offset) {
         /* Open addressing with linear offset */
@@ -161,7 +160,7 @@ const ht_elem_t *ht_insert(const ht_t *ht, const char *key, void *value)
         DEBUG(": ht == NULL\n");
         return NULL;
     }
-    ht_elem_t *elp = _ht_locate(ht, key);
+    ht_elem_t *elp = ht_locate(ht, key);
     if (!elp) {
         /* Not found, and table was full */
         return NULL;
@@ -178,7 +177,7 @@ void *ht_lookup(const ht_t *ht, const char *key)
         DEBUG(": ht == NULL\n");
         return NULL;
     }
-    ht_elem_t *elp = _ht_locate(ht, key);
+    ht_elem_t *elp = ht_locate(ht, key);
     if (!elp) {
         /* Not found, and table was full */
         return NULL;
@@ -198,7 +197,7 @@ void *ht_pop(const ht_t *ht, const char *key)
         DEBUG(": ht == NULL\n");
         return NULL;
     }
-    ht_elem_t *elp = _ht_locate(ht, key);
+    ht_elem_t *elp = ht_locate(ht, key);
     if (!elp) {
         /* Not found, and table was full */
         return NULL;

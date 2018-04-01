@@ -6,8 +6,8 @@
  * details.
  */
 
-#ifndef HASHTABLE_H
-#define HASHTABLE_H
+#ifndef HT_H
+#define HT_H
 
 #include <stddef.h>
 
@@ -81,4 +81,4 @@ void *ht_pop(const ht_t *ht, const char *key);
  */
 void ht_dump(const ht_t *ht);
 
-#endif /* HASHTABLE_H */
+#endif /* HT_H */
