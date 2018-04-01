@@ -28,12 +28,9 @@
 #include <stdio.h>
 #include "ht.h"
 
-#define ENABLE_DEBUG 1
-#if ENABLE_DEBUG
-#define DEBUG(...) printf(__VA_ARGS__)
-#else
-#define DEBUG(...)
-#endif
+#define ENABLE_DEBUG 0
+
+#define DEBUG(...) do { if (ENABLE_DEBUG) { printf(__VA_ARGS__); } } while (0)
 
 /* Sentinel element which is used for signaling deleted items */
 /* Does not matter what contents it has, only the address */
