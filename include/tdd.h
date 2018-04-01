@@ -18,7 +18,7 @@ extern int tests_run;
 #define tdd_assert(test) \
     do { \
         if (!(test)) { \
-            return (TOSTRING(__FILE__) ":" TOSTRING(__LINE__) ": " STRINGIFY(test)); \
+            return (__FILE__ ":" TOSTRING(__LINE__) ": " STRINGIFY(test)); \
         } \
     } while (0)
 #define tdd_run(test_func) do { const char *message = test_func(); tests_run++; \
